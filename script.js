@@ -1,18 +1,19 @@
 let score = 0;
 let maxEnergy = 1000;
 let energy = 1000;
-let profitPerClick = 1; // Сколько монет дается за 1 тап
+let profitPerClick = 0.1; // Начисление за 1 тап
+let energyCost = 1;      // Трата энергии за 1 тап
 
 const scoreEl = document.getElementById('score');
 const coinEl = document.getElementById('coin');
 const energyTextEl = document.getElementById('energy-text');
 const energyProgressEl = document.getElementById('energy-progress');
 
-// Обработка клика по монете
+// Обработка клика по хомяку
 coinEl.addEventListener('click', (e) => {
-    if (energy >= profitPerClick) {
+    if (energy >= energyCost) {
         score += profitPerClick;
-        energy -= profitPerClick;
+        energy -= energyCost;
 
         updateUI();
         
@@ -30,7 +31,8 @@ setInterval(() => {
 }, 1000);
 
 function updateUI() {
-    scoreEl.textContent = score;
+    // Округляем счет до 1 знака после запятой, чтобы не было длинных хвостов
+    scoreEl.textContent = score.toFixed(1);
     energyTextEl.textContent = ${energy} / ${maxEnergy};
     
     const energyPercent = (energy / maxEnergy) * 100;
