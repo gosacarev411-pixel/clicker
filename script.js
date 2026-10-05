@@ -1,8 +1,8 @@
 let score = 0;
 let maxEnergy = 1000;
 let energy = 1000;
-let profitPerClick = 0.1; // Начисление за 1 тап
-let energyCost = 1;      // Трата энергии за 1 тап
+let profitPerClick = 0.1; // Ровно 0.1 монеты за тап
+let energyCost = 1;      // Трата ровно 1 энергии за тап
 
 const scoreEl = document.getElementById('score');
 const coinEl = document.getElementById('coin');
@@ -31,7 +31,7 @@ setInterval(() => {
 }, 1000);
 
 function updateUI() {
-    // Округляем счет до 1 знака после запятой
+    // Округляем счет до 1 знака после запятой, чтобы не было длинных хвостов
     scoreEl.textContent = score.toFixed(1);
     energyTextEl.textContent = ${energy} / ${maxEnergy};
     
