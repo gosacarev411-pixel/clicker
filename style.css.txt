@@ -1,0 +1,17 @@
+// Инициализация Telegram Web App
+let tg = window.Telegram.WebApp;
+tg.expand(); // Растягиваем на весь экран
+
+let score = 0;
+const scoreDisplay = document.getElementById('score');
+const clickBtn = document.getElementById('click-btn');
+
+clickBtn.addEventListener('click', () => {
+    score += 1;
+    scoreDisplay.textContent = score;
+
+    // Легкая вибрация телефона при клике (если поддерживается)
+    if (tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('light');
+    }
+});
