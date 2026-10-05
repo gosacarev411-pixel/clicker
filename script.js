@@ -31,7 +31,7 @@ setInterval(() => {
 }, 1000);
 
 function updateUI() {
-    // Округляем счет до 1 знака после запятой, чтобы не было длинных хвостов
+    // Округляем счет до 1 знака после запятой
     scoreEl.textContent = score.toFixed(1);
     energyTextEl.textContent = ${energy} / ${maxEnergy};
     
