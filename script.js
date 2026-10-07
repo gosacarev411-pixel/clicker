@@ -128,8 +128,6 @@ function closeAllSubScreens() {
     document.getElementById('slotsModal').classList.add('hidden');
     document.getElementById('walletModal').classList.add('hidden');
     document.getElementById('topModal').classL
-Player.Money
-player.money
 
 
 ist.add('hidden');
@@ -257,6 +255,8 @@ function checkTimersOnLoad() {
 
 function openWheel() { closeAllSubScreens(); document.getElementById('wheelModal').classList.remove('hidden'); }
 function openUpgrades() { closeAllSubSc
+Player.Money
+player.money
 
 
 reens(); document.getElementById('upgradesModal').classList.remove('hidden'); renderUpgrades(); }
