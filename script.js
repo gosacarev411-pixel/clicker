@@ -255,8 +255,6 @@ function checkTimersOnLoad() {
 
 function openWheel() { closeAllSubScreens(); document.getElementById('wheelModal').classList.remove('hidden'); }
 function openUpgrades() { closeAllSubSc
-Player.Money
-player.money
 
 
 reens(); document.getElementById('upgradesModal').classList.remove('hidden'); renderUpgrades(); }
