@@ -2,35 +2,179 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hamster Style Clicker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Путь Бомжа - Telegram Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-container">
-        <!-- Баланс -->
-        <div class="score-section">
-            <h1 id="score">0</h1>
-            <p>монет</p>
-        </div>
+    <!-- Динамическое звездное небо -->
+    <div class="stars-container" id="starsContainer"></div>
 
-        <!-- Кликабельная монета / персонаж -->
-        <div class="coin-container">
-            <div id="coin" class="coin">🐹</div>
+    <!-- Модальное окно регистрации -->
+    <div id="regModal" class="modal active">
+        <div class="modal-content">
+            <h2>Регистрация в игре</h2>
+            <p>Введите имя вашего персонажа (сменить можно будет при повышении уровня):</p>
+            <input type="text" id="usernameInput" placeholder="Кличка бомжа..." maxlength="15">
+            <button id="startBtn" class="btn">Начать путь</button>
         </div>
+    </div>
 
-        <!-- Шкала энергии -->
-        <div class="energy-section">
-            <div class="energy-info">
-                <span>⚡️ Энергия</span>
-                <span id="energy-text">1000 / 1000</span>
+    <!-- Главный экран игры -->
+    <div id="gameScreen" class="screen">
+        <!-- Шапка: Профиль, Уровень, Баланс -->
+        <header class="header">
+            <div class="user-info">
+                <span id="displayName">Бомж</span>
+                <span id="displayLevel" class="level-badge">Уровень 1: Бомж</span>
             </div>
-            <div class="energy-bar">
-                <div id="energy-progress" class="energy-progress"></div>
+            <div class="balances">
+                <div class="balance-item">💰 <span id="moneyCount">0</span></div>
+                <div class="balance-item donate">💎 <span id="donateCount">0</span></div>
+            </div>
+        </header>
+
+        <!-- Основная игровая зона -->
+        <main class="game-main">
+            <div class="stats-container">
+                <div class="stat-bar">
+                    <span>Энергия: <span id="energyText">500</span>/500</span>
+                    <div class="progress-bg"><div id="energyBar" class="progress-fill energy"></div></div>
+                </div>
+                <div class="stat-bar">
+                    <span>Голод: <span id="hungerText">100</span>/100</span>
+                    <div class="progress-bg"><div id="hungerBar" class="progress-fill hunger"></div></div>
+                </div>
+            </div>
+
+            <div class="counter-container">
+                <h2>Натапано: <span id="scoreCount">0</span></h2>
+                <p class="tap-power-hint">Сила тапа: +<span id="tapPower">1</span></p>
+            </div>
+
+            <!-- Персонаж для тапа -->
+            <div class="character-container" id="tapButton">
+                <div class="character-avatar">📦</div>
+                <div class="tap-animation-layer" id="tapEffects"></div>
+            </div>
+
+            <!-- Таймеры блокировок -->
+            <div id="timerContainer" class="timer-container hidden">
+                <p id="timerLabel">Энергия восстановится через:</p>
+                <h3 id="timerDisplay">30:00</h3>
+            </div>
+        </main>
+
+        <!-- Навигационное меню -->
+        <nav class="nav-menu">
+            <button class="nav-btn active" data-tab="game">🏠 Игра</button>
+            <button class="nav-btn" data-tab="menu">📋 Меню</button>
+            <button class="nav-btn" data-tab="wallet">💼 Кошелек</button>
+            <button class="nav-btn" data-tab="top">🏆 Топ</button>
+        </nav>
+    </div>
+
+    <!-- Вкладки меню (Модальные окна поверх или переключение) -->
+    <div id="menuModal" class="sub-screen hidden">
+        <div class="sub-header">
+            <h2>Меню игрока</h2>
+            <button class="close-sub" data-close="menuModal">✕</button>
+        </div>
+        <div class="menu-grid">
+            <button class="menu-item-btn" onclick="openWheel()">🎡 Колесо фортуны</button>
+            <button class="menu-item-btn" onclick="openUpgrades()">📈 Улучшения</button>
+            <button class="menu-item-btn" onclick="openSlots()">🎰 Слоты (Мини-игры)</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно Еды (если голод 0) -->
+    <div id="foodModal" class="modal">
+        <div class="modal-content">
+            <h2>Желудок урчит!</h2>
+            <p>Голод на нуле. Хотите купить поесть?</p>
+            <div class="modal-b
+
+
+uttons">
+                <button id="eatYes" class="btn green">Поесть (Платные отбросы)</button>
+                <button id="eatNo" class="btn red">Отказаться (Штраф 1 час)</button>
             </div>
         </div>
     </div>
 
-    <script src="script.js?v=2"></script>
+    <!-- Модальное окно Колеса Фортуны -->
+    <div id="wheelModal" class="sub-screen hidden">
+        <div class="sub-header">
+            <h2>Колесо фортуны</h2>
+            <button class="close-sub" data-close="wheelModal">✕</button>
+        </div>
+        <div class="wheel-content">
+            <div class="wheel-box" id="wheelBox">🎁</div>
+            <button id="spinWheelBtn" class="btn">Крутить колесо!</button>
+            <p id="wheelResult" class="result-text"></p>
+        </div>
+    </div>
+
+    <!-- Модальное окно Улучшений -->
+    <div id="upgradesModal" class="sub-screen hidden">
+        <div class="sub-header">
+            <h2>Улучшения</h2>
+            <button class="close-sub" data-close="upgradesModal">✕</button>
+        </div>
+        <div class="upgrade-tabs">
+            <button class="up-tab-btn active" onclick="switchUpgradeTab('tap')">За тап (Монеты)</button>
+            <button class="up-tab-btn" onclick="switchUpgradeTab('mine')">Майнинг (Донат 💎)</button>
+        </div>
+        <div id="tapUpgradesList" class="upgrades-list">
+            <!-- Динамически заполняется -->
+        </div>
+        <div id="mineUpgradesList" class="upgrades-list hidden">
+            <!-- Динамически заполняется -->
+        </div>
+    </div>
+
+    <!-- Модальное окно Слотов -->
+    <div id="slotsModal" class="sub-screen hidden">
+        <div class="sub-header">
+            <h2>Казино "У бомжа"</h2>
+            <button class="close-sub" data-close="slotsModal">✕</button>
+        </div>
+        <div class="slots-container-inner">
+            <div class="slot-machine">
+                <div class="slots-screen">
+                    <span id="s1">🍒</span><span id="s2">🍋</span><span id="s3">⭐</span>
+                </div>
+                <p>Ставок сделано для гарантированного шанса: <span id="betsCount">0</span>/10</p>
+                <button id="playSlotBtn" class="btn">Сделать ставку (50 монет)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладка Кошелек -->
+    <div id="walletModal" class="sub-screen hidden">
+        <div class="sub-header">
+            <h2>Кошелек и баланс</h2>
+            <button class="close-sub" data-close="walletModal">✕</button>
+        </div>
+        <div class="wallet-content">
+            <p>Ваш баланс: <span id="walletMoney">0</span> монет</p>
+            <p>Донат счета: <span id="walletDonate">0</span> 💎</p>
+            <button class="btn green" onclick="donateModal()">Пополнить баланс (Telegram Stars)</button>
+            <button class="btn" onclick="withdrawModal()">Вывести средства</button>
+        </div>
+    </div>
+
+    <!-- Вкладка Топ -->
+    <div id="topModal" class="sub-screen hidden">
+        <div class="sub-header">
+            <h2>Топ игроков онлайн</h2>
+            <button class="close-sub" data-close="topModal">✕</button>
+        </div>
+        <div class="top-list" id="topListContainer">
+            <!-- Список топа -->
+        </div>
+    </div>
+
+    <script src="скрипт.js"></script>
 </body>
 </html>
