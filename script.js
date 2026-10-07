@@ -128,6 +128,8 @@ function closeAllSubScreens() {
     document.getElementById('slotsModal').classList.add('hidden');
     document.getElementById('walletModal').classList.add('hidden');
     document.getElementById('topModal').classL
+Player.Money
+player.money
 
 
 ist.add('hidden');
@@ -161,7 +163,7 @@ document.getElementById('tapButton').onclick = () => {
 function checkLevelUp() {
     if (player.levelIndex < LEVELS.length - 1 && player.score >= LEVELS[player.levelIndex + 1].req) {
         player.levelIndex++;
-        alert(`Поздравляем! Вы повысили уровень до: ${LEVELS[player.levelIndex].name}! Теперь вы можете сменить имя.`);
+        alert("Поздравляем! Вы повысили уровень до: " + LEVELS[player.levelIndex].name + "! Теперь вы можете сменить имя.");
     }
 }
 
@@ -194,7 +196,7 @@ function startEnergyInterval() {
 
         let mins = Math.floor(timeLeft / 60);
         let secs = timeLeft % 60;
-        timerDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        timerDisplay.innerText = mins + ":" + (secs < 10 ? '0' : '') + secs;
     }, 1000);
 }
 
@@ -239,7 +241,7 @@ function startStarveInterval() {
 
         let mins = Math.floor(timeLeft / 60);
         let secs = timeLeft % 60;
-        timerDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        timerDisplay.innerText = mins + ":" + (secs < 10 ? '0' : '') + secs;
     }, 1000);
 }
 
@@ -254,10 +256,10 @@ function checkTimersOnLoad() {
 }
 
 function openWheel() { closeAllSubScreens(); document.getElementById('wheelModal').classList.remove('hidden'); }
-function openUpgrades() { closeAllSubScreens();
+function openUpgrades() { closeAllSubSc
 
 
-document.getElementById('upgradesModal').classList.remove('hidden'); renderUpgrades(); }
+reens(); document.getElementById('upgradesModal').classList.remove('hidden'); renderUpgrades(); }
 function openSlots() { closeAllSubScreens(); document.getElementById('slotsModal').classList.remove('hidden'); }
 
 document.getElementById('spinWheelBtn').onclick = () => {
@@ -270,7 +272,7 @@ document.getElementById('spinWheelBtn').onclick = () => {
     ];
     let win = rewards[Math.floor(Math.random() * rewards.length)];
     win.apply();
-    document.getElementById('wheelResult').innerText = `Вы выиграли: ${win.text}!`;
+    document.getElementById('wheelResult').innerText = "Вы выиграли: " + win.text + "!";
     updateUI();
 };
 
@@ -285,18 +287,8 @@ function switchUpgradeTab(tab) {
 }
 
 function renderUpgrades() {
-    document.getElementById('tapUpgradesList').innerHTML = `
-        <div class="upgrade-item">
-            <p>Улучшить силу тапа (+1)</p>
-            <button class="btn" onclick="buyTapUpgrade()">Купить за 500 монет</button>
-        </div>
-    `;
-    document.getElementById('mineUpgradesList').innerHTML = `
-        <div class="upgrade-item">
-            <p>Пассивный майнинг (Требует 💎)</p>
-            <button class="btn green" onclick="buyMineUpgrade()">Купить за 10 💎</button>
-        </div>
-    `;
+    document.getElementById('tapUpgradesList').innerHTML = '<div class="upgrade-item"><p>Улучшить силу тапа (+1)</p><button class="btn" onclick="buyTapUpgrade()">Купить за 500 монет</button></div>';
+    document.getElementById('mineUpgradesList').innerHTML = '<div class="upgrade-item"><p>Пассивный майнинг (Требует 💎)</p><button class="btn green" onclick="buyMineUpgrade()">Купить за 10 💎</button></div>';
 }
 
 function buyTapUpgrade() {
@@ -360,25 +352,23 @@ function withdrawModal() {
 
 function renderTopList() {
     const list = document.getElementById('topListContainer');
-    list.innerHTML = `
-        <div class="top-row">1. ${player.name} (Вы) — ${Math.floor(player.score)} очков</div>
-        <div class="top-row">2. Князь с теплотрассы — 450,000 очков</div>
-        <div class="top-row">3. Оскар у Пятерочки — 120,000 очков</div>
-    `;
+    list.innerHTML = '<div class="top-row">1. ' + player.name + ' (Вы) — ' + Math.floor(player.score) + ' очков</div>' +
+                     '<div class="top-row">2. Князь с теплотрассы — 450,000 очков</div>' +
+                     '<div class="top-row">3. Оскар у Пятерочки — 120,000 очков</div>';
 }
 
 function updateUI() {
-    document.getElementById('scoreCount'
+    document.getElementById('scoreCount').innerText = Math.floor(player.score);
+    document.g
 
 
-).innerText = Math.floor(player.score);
-    document.getElementById('moneyCount').innerText = Math.floor(player.money);
+etElementById('moneyCount').innerText = Math.floor(player.money);
     document.getElementById('donateCount').innerText = player.donate;
     document.getElementById('energyText').innerText = Math.floor(player.energy);
     document.getElementById('hungerText').innerText = Math.floor(player.hunger);
     document.getElementById('tapPower').innerText = player.tapPower;
     document.getElementById('displayName').innerText = player.name;
-    document.getElementById('displayLevel').innerText = `Уровень ${player.levelIndex + 1}: ${LEVELS[player.levelIndex].name}`;
+    document.getElementById('displayLevel').innerText = "Уровень " + (player.levelIndex + 1) + ": " + LEVELS[player.levelIndex].name;
 
     document.getElementById('energyBar').style.width = (player.energy / player.maxEnergy * 100) + '%';
     document.getElementById('hungerBar').style.width = (player.hunger / player.maxHunger * 100) + '%';
