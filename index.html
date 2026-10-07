@@ -74,7 +74,7 @@
         </nav>
     </div>
 
-    <!-- Вкладки меню (Модальные окна поверх или переключение) -->
+    <!-- Вкладки меню -->
     <div id="menuModal" class="sub-screen hidden">
         <div class="sub-header">
             <h2>Меню игрока</h2>
@@ -87,16 +87,16 @@
         </div>
     </div>
 
-    <!-- Модальное окно Еды (если голод 0) -->
+    <!-- Модальное окно Еды -->
     <div id="foodModal" class="modal">
         <div class="modal-content">
             <h2>Желудок урчит!</h2>
             <p>Голод на нуле. Хотите купить поесть?</p>
-            <div class="modal-b
+            <div class="modal-buttons">
+                <button id="eatYes" class="btn
 
 
-uttons">
-                <button id="eatYes" class="btn green">Поесть (Платные отбросы)</button>
+green">Поесть (Платные отбросы)</button>
                 <button id="eatNo" class="btn red">Отказаться (Штраф 1 час)</button>
             </div>
         </div>
@@ -125,12 +125,8 @@ uttons">
             <button class="up-tab-btn active" onclick="switchUpgradeTab('tap')">За тап (Монеты)</button>
             <button class="up-tab-btn" onclick="switchUpgradeTab('mine')">Майнинг (Донат 💎)</button>
         </div>
-        <div id="tapUpgradesList" class="upgrades-list">
-            <!-- Динамически заполняется -->
-        </div>
-        <div id="mineUpgradesList" class="upgrades-list hidden">
-            <!-- Динамически заполняется -->
-        </div>
+        <div id="tapUpgradesList" class="upgrades-list"></div>
+        <div id="mineUpgradesList" class="upgrades-list hidden"></div>
     </div>
 
     <!-- Модальное окно Слотов -->
@@ -167,14 +163,13 @@ uttons">
     <!-- Вкладка Топ -->
     <div id="topModal" class="sub-screen hidden">
         <div class="sub-header">
-            <h2>Топ игроков онлайн</h2>
+            <h2>Топ пользователей онлайн</h2>
             <button class="close-sub" data-close="topModal">✕</button>
         </div>
-        <div class="top-list" id="topListContainer">
-            <!-- Список топа -->
-        </div>
+        <div class="top-list" id="topListContainer"></div>
     </div>
 
-    <script src="скрипт.js"></script>
+    <!-- Исправленное название скрипта на латиницу -->
+    <script src="script.js"></script>
 </body>
 </html>
