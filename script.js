@@ -1,4 +1,3 @@
-// Базовая игровая логика с балансировкой под 1 год непрерывного прохождения
 const LEVELS = [
     { name: "Бомж", req: 0 },
     { name: "Попрошайка", req: 100000 },
@@ -24,14 +23,12 @@ let player = {
     isStarvingPenalty: false,
     isEnergyEmpty: false,
     unlimitedEnergy: false,
-    unlimitedHealthTime: 0,
     tapMultiplier: 1,
     lastSaveTime: Date.now(),
     energyEmptyUntil: 0,
     starvePenaltyUntil: 0
 };
 
-// Генерация звездного неба
 function initStars() {
     const container = document.getElementById('starsContainer');
     for (let i = 0; i < 60; i++) {
@@ -46,7 +43,6 @@ function initStars() {
     }
 }
 
-// Инициализация при старте и расчет фонового времени
 window.onload = () => {
     initStars();
     loadGame();
@@ -59,42 +55,32 @@ window.onload = () => {
         updateUI();
     }
     
-    // Запуск активных таймеров, если они продолжаются
     checkTimersOnLoad();
 };
 
-// Расчет того, что произошло пока приложение было закрыто
 function calculateOfflineProgress() {
     const now = Date.now();
     const elapsedSeconds = Math.floor((now - player.lastSaveTime) / 1000);
 
     if (elapsedSeconds <= 0) return;
 
-    // Пассивный майнинг за офлайн время
     if (player.mineSpeed > 0) {
         player.money += player.mineSpeed * elapsedSeconds;
     }
 
-    // Проверка таймера пустой энергии (30 минут = 1800 секунд)
-    if (player.energyEmptyUntil > 0) {
-        if (now >= player.energyEmptyUntil) {
-            player.energy = player.maxEnergy;
-            player.isEnergyEmpty = false;
-            player.energyEmptyUntil = 0;
-        }
+    if (player.energyEmptyUntil > 0 && now >= player.energyEmptyUntil) {
+        player.energy = player.maxEnergy;
+        player.isEnergyEmpty = false;
+        player.energyEmptyUntil = 0;
     }
 
-    // Проверка штрафа голода (1 час = 3600 секунд)
-    if (player.starvePenaltyUntil > 0) {
-        if (now >= player.starvePenaltyUntil) {
-            player.hunger = player.maxHunger;
-            player.isStarvingPenalty = false;
-            player.starvePenaltyUntil = 0;
-        }
+    if (player.starvePenaltyUntil > 0 && now >= player.starvePenaltyUntil) {
+        player.hunger = player.maxHunger;
+        player.isStarvingPenalty = false;
+        player.starvePenaltyUntil = 0;
     }
 }
 
-// Регистрация
 document.getElementById('startBtn').onclick = () => {
     const nameInput = document.getElementById('usernameInput').value.trim();
     if (nameInput.length < 2) {
@@ -107,7 +93,6 @@ document.getElementById('startBtn').onclick = () => {
     updateUI();
 };
 
-// Навигация по вкладкам
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = (e) => {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -130,10 +115,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 
 document.querySelectorAll('.close-sub').forEach(btn => {
     btn.onclick = (e) => {
-        const modalId = e.target.getAttribute('dat
-
-
-a-close');
+        const modalId = e.target.getAttribute('data-close');
         document.getElementById(modalId).classList.add('hidden');
         document.querySelector('[data-tab="game"]').click();
     };
@@ -145,10 +127,12 @@ function closeAllSubScreens() {
     document.getElementById('upgradesModal').classList.add('hidden');
     document.getElementById('slotsModal').classList.add('hidden');
     document.getElementById('walletModal').classList.add('hidden');
-    document.getElementById('topModal').classList.add('hidden');
+    document.getElementById('topModal').classL
+
+
+ist.add('hidden');
 }
 
-// Основной клик (Тап)
 document.getElementById('tapButton').onclick = () => {
     if (player.isStarvingPenalty || player.isEnergyEmpty) return;
     if (player.hunger <= 0) {
@@ -164,7 +148,6 @@ document.getElementById('tapButton').onclick = () => {
         player.energy -= 1;
     }
 
-    // Тратим немного голода при тапах
     player.hunger = Math.max(0, player.hunger - 0.05);
 
     let earned = player.tapPower * player.tapMultiplier;
@@ -175,16 +158,13 @@ document.getElementById('tapButton').onclick = () => {
     updateUI();
 };
 
-// Проверка уровней (всего 6 уровней под годовую прогрессию)
 function checkLevelUp() {
-    let currentLevelObj = LEVELS[player.levelIndex];
     if (player.levelIndex < LEVELS.length - 1 && player.score >= LEVELS[player.levelIndex + 1].req) {
         player.levelIndex++;
-        alert(`Поздравляем! Вы повысили уровень до: ${LEVELS[player.levelIndex].name}! Теперь вы можете сменить имя в настройках.`);
+        alert(`Поздравляем! Вы повысили уровень до: ${LEVELS[player.levelIndex].name}! Теперь вы можете сменить имя.`);
     }
 }
 
-// Таймер энергии на 30 минут с поддержкой фонового режима
 function triggerEnergyTimer() {
     player.isEnergyEmpty = true;
     player.energyEmptyUntil = Date.now() + (30 * 60 * 1000);
@@ -218,10 +198,9 @@ function startEnergyInterval() {
     }, 1000);
 }
 
-// Логика голода = 0
 document.getElementById('eatYes').onclick = () => {
     document.getElementById('foodModal').classList.remove('active');
-    player.money -= 50; // покупка еды
+    player.money -= 50;
     player.hunger = player.maxHunger;
     updateUI();
 };
@@ -233,7 +212,7 @@ document.getElementById('eatNo').onclick = () => {
 
 function triggerStarvePenalty() {
     player.isStarvingPenalty = true;
-    player.starvePenaltyUntil = Date.now() + (60 * 60 * 1000); // 1 час штрафа
+    player.starvePenaltyUntil = Date.now() + (60 * 60 * 1000);
     saveGame();
     startStarveInterval();
 }
@@ -249,9 +228,7 @@ function startStarveInterval() {
 
         if (timeLeft <= 0 || !player.isStarvingPenalty) {
             clearInterval(interval);
-
-
-player.hunger = player.maxHunger;
+            player.hunger = player.maxHunger;
             player.isStarvingPenalty = false;
             player.starvePenaltyUntil = 0;
             timerContainer.classList.add('hidden');
@@ -266,7 +243,6 @@ player.hunger = player.maxHunger;
     }, 1000);
 }
 
-// Проверка фоновых таймеров при загрузке страницы
 function checkTimersOnLoad() {
     const now = Date.now();
     if (player.isEnergyEmpty && player.energyEmptyUntil > now) {
@@ -277,12 +253,13 @@ function checkTimersOnLoad() {
     }
 }
 
-// Меню функции
 function openWheel() { closeAllSubScreens(); document.getElementById('wheelModal').classList.remove('hidden'); }
-function openUpgrades() { closeAllSubScreens(); document.getElementById('upgradesModal').classList.remove('hidden'); renderUpgrades(); }
+function openUpgrades() { closeAllSubScreens();
+
+
+document.getElementById('upgradesModal').classList.remove('hidden'); renderUpgrades(); }
 function openSlots() { closeAllSubScreens(); document.getElementById('slotsModal').classList.remove('hidden'); }
 
-// Колесо фортуны
 document.getElementById('spinWheelBtn').onclick = () => {
     const rewards = [
         { text: "+1 монета", apply: () => player.money += 1 },
@@ -297,7 +274,6 @@ document.getElementById('spinWheelBtn').onclick = () => {
     updateUI();
 };
 
-// Улучшения (Тап за монеты, Майнинг за донат)
 function switchUpgradeTab(tab) {
     if (tab === 'tap') {
         document.getElementById('tapUpgradesList').classList.remove('hidden');
@@ -345,7 +321,6 @@ function buyMineUpgrade() {
     }
 }
 
-// Слоты с гарантией выигрыша на 10-й ставке
 document.getElementById('playSlotBtn').onclick = () => {
     if (player.money < 50) { alert("Нужно минимум 50 монет для ставки!"); return; }
     player.money -= 50;
@@ -364,14 +339,12 @@ document.getElementById('playSlotBtn').onclick = () => {
         r2 = icons[Math.floor(Math.random() * icons.length)];
     }
 
-
-document.getElementById('s1').innerText = r1;
+    document.getElementById('s1').innerText = r1;
     document.getElementById('s2').innerText = r2;
     document.getElementById('betsCount').innerText = player.betsMade;
     updateUI();
 };
 
-// Кошелек
 function updateWalletUI() {
     document.getElementById('walletMoney').innerText = Math.floor(player.money);
     document.getElementById('walletDonate').innerText = player.donate;
@@ -385,7 +358,6 @@ function withdrawModal() {
     alert("Заявка на вывод средств создана! Средства поступят в течение 24 часов.");
 }
 
-// Топ пользователей онлайн
 function renderTopList() {
     const list = document.getElementById('topListContainer');
     list.innerHTML = `
@@ -395,9 +367,11 @@ function renderTopList() {
     `;
 }
 
-// Обновление интерфейса
 function updateUI() {
-    document.getElementById('scoreCount').innerText = Math.floor(player.score);
+    document.getElementById('scoreCount'
+
+
+).innerText = Math.floor(player.score);
     document.getElementById('moneyCount').innerText = Math.floor(player.money);
     document.getElementById('donateCount').innerText = player.donate;
     document.getElementById('energyText').innerText = Math.floor(player.energy);
@@ -410,7 +384,6 @@ function updateUI() {
     document.getElementById('hungerBar').style.width = (player.hunger / player.maxHunger * 100) + '%';
 }
 
-// Автосохранение каждую секунду и на закрытие страницы
 setInterval(() => {
     if (player.mineSpeed > 0) {
         player.money += player.mineSpeed;
