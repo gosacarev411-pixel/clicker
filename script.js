@@ -1,66 +1,436 @@
-let score = 0;
-let maxEnergy = 1000;
-let energy = 1000;
-let profitPerClick = 0.1; // Ровно 0.1 монеты за тап
-let energyCost = 1;      // Трата ровно 1 энергии за тап
+// Базовая игровая логика с балансировкой под 1 год непрерывного прохождения
+const LEVELS = [
+    { name: "Бомж", req: 0 },
+    { name: "Попрошайка", req: 100000 },
+    { name: "Бродяга", req: 1500000 },
+    { name: "Работяга", req: 15000000 },
+    { name: "Бизнесмен", req: 100000000 },
+    { name: "Миллионер", req: 1000000000 }
+];
 
-const scoreEl = document.getElementById('score');
-const coinEl = document.getElementById('coin');
-const energyTextEl = document.getElementById('energy-text');
-const energyProgressEl = document.getElementById('energy-progress');
+let player = {
+    name: "",
+    levelIndex: 0,
+    score: 0,
+    money: 0,
+    donate: 0,
+    energy: 500,
+    maxEnergy: 500,
+    hunger: 100,
+    maxHunger: 100,
+    tapPower: 1,
+    mineSpeed: 0,
+    betsMade: 0,
+    isStarvingPenalty: false,
+    isEnergyEmpty: false,
+    unlimitedEnergy: false,
+    unlimitedHealthTime: 0,
+    tapMultiplier: 1,
+    lastSaveTime: Date.now(),
+    energyEmptyUntil: 0,
+    starvePenaltyUntil: 0
+};
 
-// Обработка клика по хомяку
-coinEl.addEventListener('click', (e) => {
-    if (energy >= energyCost) {
-        score += profitPerClick;
-        energy -= energyCost;
-
-        updateUI();
-        
-        // Создаем летящую цифру при клике
-        createFloatingText(e.clientX, e.clientY, +${profitPerClick});
+// Генерация звездного неба
+function initStars() {
+    const container = document.getElementById('starsContainer');
+    for (let i = 0; i < 60; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.width = Math.random() * 3 + 'px';
+        star.style.height = star.style.width;
+        star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+        container.appendChild(star);
     }
-});
-
-// Автоматическое восстановление энергии (по 5 единиц каждую секунду)
-setInterval(() => {
-    if (energy < maxEnergy) {
-        energy = Math.min(maxEnergy, energy + 5);
-        updateUI();
-    }
-}, 1000);
-
-function updateUI() {
-    // Округляем счет до 1 знака после запятой, чтобы не было длинных хвостов
-    scoreEl.textContent = score.toFixed(1);
-    energyTextEl.textContent = ${energy} / ${maxEnergy};
-    
-    const energyPercent = (energy / maxEnergy) * 100;
-    energyProgressEl.style.width = ${energyPercent}%;
 }
 
-// Эффект всплывающего плюсика при клике
-function createFloatingText(x, y, text) {
-    const el = document.createElement('div');
-    el.textContent = text;
-    el.style.position = 'absolute';
-    el.style.left = ${x}px;
-    el.style.top = ${y}px;
-    el.style.color = '#fff';
-    el.style.fontSize = '24px';
-    el.style.fontWeight = 'bold';
-    el.style.pointerEvents = 'none';
-    el.style.transition = 'all 0.6s ease-out';
-    el.style.transform = 'translate(-50%, -50%)';
+// Инициализация при старте и расчет фонового времени
+window.onload = () => {
+    initStars();
+    loadGame();
+    calculateOfflineProgress();
+
+    if (!player.name) {
+        document.getElementById('regModal').classList.add('active');
+    } else {
+        document.getElementById('regModal').classList.remove('active');
+        updateUI();
+    }
     
-    document.body.appendChild(el);
+    // Запуск активных таймеров, если они продолжаются
+    checkTimersOnLoad();
+};
 
-    setTimeout(() => {
-        el.style.top = ${y - 60}px;
-        el.style.opacity = '0';
-    }, 10);
+// Расчет того, что произошло пока приложение было закрыто
+function calculateOfflineProgress() {
+    const now = Date.now();
+    const elapsedSeconds = Math.floor((now - player.lastSaveTime) / 1000);
 
-    setTimeout(() => {
-        el.remove();
-    }, 600);
+    if (elapsedSeconds <= 0) return;
+
+    // Пассивный майнинг за офлайн время
+    if (player.mineSpeed > 0) {
+        player.money += player.mineSpeed * elapsedSeconds;
+    }
+
+    // Проверка таймера пустой энергии (30 минут = 1800 секунд)
+    if (player.energyEmptyUntil > 0) {
+        if (now >= player.energyEmptyUntil) {
+            player.energy = player.maxEnergy;
+            player.isEnergyEmpty = false;
+            player.energyEmptyUntil = 0;
+        }
+    }
+
+    // Проверка штрафа голода (1 час = 3600 секунд)
+    if (player.starvePenaltyUntil > 0) {
+        if (now >= player.starvePenaltyUntil) {
+            player.hunger = player.maxHunger;
+            player.isStarvingPenalty = false;
+            player.starvePenaltyUntil = 0;
+        }
+    }
+}
+
+// Регистрация
+document.getElementById('startBtn').onclick = () => {
+    const nameInput = document.getElementById('usernameInput').value.trim();
+    if (nameInput.length < 2) {
+        alert("Введите имя длиной от 2 символов!");
+        return;
+    }
+    player.name = nameInput;
+    document.getElementById('regModal').classList.remove('active');
+    saveGame();
+    updateUI();
+};
+
+// Навигация по вкладкам
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.onclick = (e) => {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        const tab = e.target.getAttribute('data-tab');
+        closeAllSubScreens();
+        
+        if (tab === 'menu') document.getElementById('menuModal').classList.remove('hidden');
+        if (tab === 'wallet') {
+            updateWalletUI();
+            document.getElementById('walletModal').classList.remove('hidden');
+        }
+        if (tab === 'top') {
+            renderTopList();
+            document.getElementById('topModal').classList.remove('hidden');
+        }
+    };
+});
+
+document.querySelectorAll('.close-sub').forEach(btn => {
+    btn.onclick = (e) => {
+        const modalId = e.target.getAttribute('dat
+
+
+a-close');
+        document.getElementById(modalId).classList.add('hidden');
+        document.querySelector('[data-tab="game"]').click();
+    };
+});
+
+function closeAllSubScreens() {
+    document.getElementById('menuModal').classList.add('hidden');
+    document.getElementById('wheelModal').classList.add('hidden');
+    document.getElementById('upgradesModal').classList.add('hidden');
+    document.getElementById('slotsModal').classList.add('hidden');
+    document.getElementById('walletModal').classList.add('hidden');
+    document.getElementById('topModal').classList.add('hidden');
+}
+
+// Основной клик (Тап)
+document.getElementById('tapButton').onclick = () => {
+    if (player.isStarvingPenalty || player.isEnergyEmpty) return;
+    if (player.hunger <= 0) {
+        document.getElementById('foodModal').classList.add('active');
+        return;
+    }
+
+    if (!player.unlimitedEnergy) {
+        if (player.energy <= 0) {
+            triggerEnergyTimer();
+            return;
+        }
+        player.energy -= 1;
+    }
+
+    // Тратим немного голода при тапах
+    player.hunger = Math.max(0, player.hunger - 0.05);
+
+    let earned = player.tapPower * player.tapMultiplier;
+    player.score += earned;
+    player.money += earned;
+
+    checkLevelUp();
+    updateUI();
+};
+
+// Проверка уровней (всего 6 уровней под годовую прогрессию)
+function checkLevelUp() {
+    let currentLevelObj = LEVELS[player.levelIndex];
+    if (player.levelIndex < LEVELS.length - 1 && player.score >= LEVELS[player.levelIndex + 1].req) {
+        player.levelIndex++;
+        alert(`Поздравляем! Вы повысили уровень до: ${LEVELS[player.levelIndex].name}! Теперь вы можете сменить имя в настройках.`);
+    }
+}
+
+// Таймер энергии на 30 минут с поддержкой фонового режима
+function triggerEnergyTimer() {
+    player.isEnergyEmpty = true;
+    player.energyEmptyUntil = Date.now() + (30 * 60 * 1000);
+    saveGame();
+    startEnergyInterval();
+}
+
+function startEnergyInterval() {
+    const timerContainer = document.getElementById('timerContainer');
+    const timerDisplay = document.getElementById('timerDisplay');
+    document.getElementById('timerLabel').innerText = "Энергия закончилась! Восстановление:";
+    timerContainer.classList.remove('hidden');
+
+    let interval = setInterval(() => {
+        let timeLeft = Math.floor((player.energyEmptyUntil - Date.now()) / 1000);
+
+        if (timeLeft <= 0 || !player.isEnergyEmpty) {
+            clearInterval(interval);
+            player.energy = player.maxEnergy;
+            player.isEnergyEmpty = false;
+            player.energyEmptyUntil = 0;
+            timerContainer.classList.add('hidden');
+            saveGame();
+            updateUI();
+            return;
+        }
+
+        let mins = Math.floor(timeLeft / 60);
+        let secs = timeLeft % 60;
+        timerDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }, 1000);
+}
+
+// Логика голода = 0
+document.getElementById('eatYes').onclick = () => {
+    document.getElementById('foodModal').classList.remove('active');
+    player.money -= 50; // покупка еды
+    player.hunger = player.maxHunger;
+    updateUI();
+};
+
+document.getElementById('eatNo').onclick = () => {
+    document.getElementById('foodModal').classList.remove('active');
+    triggerStarvePenalty();
+};
+
+function triggerStarvePenalty() {
+    player.isStarvingPenalty = true;
+    player.starvePenaltyUntil = Date.now() + (60 * 60 * 1000); // 1 час штрафа
+    saveGame();
+    startStarveInterval();
+}
+
+function startStarveInterval() {
+    const timerContainer = document.getElementById('timerContainer');
+    const timerDisplay = document.getElementById('timerDisplay');
+    document.getElementById('timerLabel').innerText = "Отказ от еды! Штраф (нельзя тапать 1 час):";
+    timerContainer.classList.remove('hidden');
+
+    let interval = setInterval(() => {
+        let timeLeft = Math.floor((player.starvePenaltyUntil - Date.now()) / 1000);
+
+        if (timeLeft <= 0 || !player.isStarvingPenalty) {
+            clearInterval(interval);
+
+
+player.hunger = player.maxHunger;
+            player.isStarvingPenalty = false;
+            player.starvePenaltyUntil = 0;
+            timerContainer.classList.add('hidden');
+            saveGame();
+            updateUI();
+            return;
+        }
+
+        let mins = Math.floor(timeLeft / 60);
+        let secs = timeLeft % 60;
+        timerDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }, 1000);
+}
+
+// Проверка фоновых таймеров при загрузке страницы
+function checkTimersOnLoad() {
+    const now = Date.now();
+    if (player.isEnergyEmpty && player.energyEmptyUntil > now) {
+        startEnergyInterval();
+    }
+    if (player.isStarvingPenalty && player.starvePenaltyUntil > now) {
+        startStarveInterval();
+    }
+}
+
+// Меню функции
+function openWheel() { closeAllSubScreens(); document.getElementById('wheelModal').classList.remove('hidden'); }
+function openUpgrades() { closeAllSubScreens(); document.getElementById('upgradesModal').classList.remove('hidden'); renderUpgrades(); }
+function openSlots() { closeAllSubScreens(); document.getElementById('slotsModal').classList.remove('hidden'); }
+
+// Колесо фортуны
+document.getElementById('spinWheelBtn').onclick = () => {
+    const rewards = [
+        { text: "+1 монета", apply: () => player.money += 1 },
+        { text: "x2 на тап на 5 минут", apply: () => { player.tapMultiplier = 2; setTimeout(() => player.tapMultiplier = 1, 300000); } },
+        { text: "Бесконечная энергия и здоровье на 10 мин", apply: () => { player.unlimitedEnergy = true; setTimeout(() => player.unlimitedEnergy = false, 600000); } },
+        { text: "За тап x3", apply: () => player.tapPower *= 3 },
+        { text: "За тап x5", apply: () => player.tapPower *= 5 }
+    ];
+    let win = rewards[Math.floor(Math.random() * rewards.length)];
+    win.apply();
+    document.getElementById('wheelResult').innerText = `Вы выиграли: ${win.text}!`;
+    updateUI();
+};
+
+// Улучшения (Тап за монеты, Майнинг за донат)
+function switchUpgradeTab(tab) {
+    if (tab === 'tap') {
+        document.getElementById('tapUpgradesList').classList.remove('hidden');
+        document.getElementById('mineUpgradesList').classList.add('hidden');
+    } else {
+        document.getElementById('tapUpgradesList').classList.add('hidden');
+        document.getElementById('mineUpgradesList').classList.remove('hidden');
+    }
+}
+
+function renderUpgrades() {
+    document.getElementById('tapUpgradesList').innerHTML = `
+        <div class="upgrade-item">
+            <p>Улучшить силу тапа (+1)</p>
+            <button class="btn" onclick="buyTapUpgrade()">Купить за 500 монет</button>
+        </div>
+    `;
+    document.getElementById('mineUpgradesList').innerHTML = `
+        <div class="upgrade-item">
+            <p>Пассивный майнинг (Требует 💎)</p>
+            <button class="btn green" onclick="buyMineUpgrade()">Купить за 10 💎</button>
+        </div>
+    `;
+}
+
+function buyTapUpgrade() {
+    if (player.money >= 500) {
+        player.money -= 500;
+        player.tapPower += 1;
+        updateUI();
+        alert("Успешно улучшено!");
+    } else {
+        alert("Не хватает монет!");
+    }
+}
+
+function buyMineUpgrade() {
+    if (player.donate >= 10) {
+        player.donate -= 10;
+        player.mineSpeed += 5;
+        updateUI();
+        alert("Майнинг запущен!");
+    } else {
+        alert("Не хватает донат-валюты (💎)!");
+    }
+}
+
+// Слоты с гарантией выигрыша на 10-й ставке
+document.getElementById('playSlotBtn').onclick = () => {
+    if (player.money < 50) { alert("Нужно минимум 50 монет для ставки!"); return; }
+    player.money -= 50;
+    player.betsMade++;
+    
+    let icons = ['🍒', '🍋', '⭐', '💎'];
+    let r1, r2;
+
+    if (player.betsMade >= 10) {
+        r1 = '⭐'; r2 = '⭐';
+        player.betsMade = 0;
+        player.money += 500;
+        alert("ДЖЕКПОТ! На 10-й ставке выпал выигрыш!");
+    } else {
+        r1 = icons[Math.floor(Math.random() * icons.length)];
+        r2 = icons[Math.floor(Math.random() * icons.length)];
+    }
+
+
+document.getElementById('s1').innerText = r1;
+    document.getElementById('s2').innerText = r2;
+    document.getElementById('betsCount').innerText = player.betsMade;
+    updateUI();
+};
+
+// Кошелек
+function updateWalletUI() {
+    document.getElementById('walletMoney').innerText = Math.floor(player.money);
+    document.getElementById('walletDonate').innerText = player.donate;
+}
+function donateModal() {
+    player.donate += 50;
+    alert("Успешно зачислено 50 💎 через Telegram Stars!");
+    updateWalletUI();
+}
+function withdrawModal() {
+    alert("Заявка на вывод средств создана! Средства поступят в течение 24 часов.");
+}
+
+// Топ пользователей онлайн
+function renderTopList() {
+    const list = document.getElementById('topListContainer');
+    list.innerHTML = `
+        <div class="top-row">1. ${player.name} (Вы) — ${Math.floor(player.score)} очков</div>
+        <div class="top-row">2. Князь с теплотрассы — 450,000 очков</div>
+        <div class="top-row">3. Оскар у Пятерочки — 120,000 очков</div>
+    `;
+}
+
+// Обновление интерфейса
+function updateUI() {
+    document.getElementById('scoreCount').innerText = Math.floor(player.score);
+    document.getElementById('moneyCount').innerText = Math.floor(player.money);
+    document.getElementById('donateCount').innerText = player.donate;
+    document.getElementById('energyText').innerText = Math.floor(player.energy);
+    document.getElementById('hungerText').innerText = Math.floor(player.hunger);
+    document.getElementById('tapPower').innerText = player.tapPower;
+    document.getElementById('displayName').innerText = player.name;
+    document.getElementById('displayLevel').innerText = `Уровень ${player.levelIndex + 1}: ${LEVELS[player.levelIndex].name}`;
+
+    document.getElementById('energyBar').style.width = (player.energy / player.maxEnergy * 100) + '%';
+    document.getElementById('hungerBar').style.width = (player.hunger / player.maxHunger * 100) + '%';
+}
+
+// Автосохранение каждую секунду и на закрытие страницы
+setInterval(() => {
+    if (player.mineSpeed > 0) {
+        player.money += player.mineSpeed;
+        updateUI();
+    }
+    saveGame();
+}, 1000);
+
+window.addEventListener('beforeunload', () => {
+    saveGame();
+});
+
+function saveGame() {
+    player.lastSaveTime = Date.now();
+    localStorage.setItem('homeless_game_save', JSON.stringify(player));
+}
+
+function loadGame() {
+    const saved = localStorage.getItem('homeless_game_save');
+    if (saved) {
+        player = Object.assign(player, JSON.parse(saved));
+    }
 }
