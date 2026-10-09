@@ -44,6 +44,12 @@ window.onload = () => {
     } else {
         initGame();
     }
+
+    // Автоматически привязываем кнопку регистрации, чтобы она точно работала
+    const regBtn = document.getElementById('registerBtn');
+    if (regBtn) {
+        regBtn.onclick = registerPlayer;
+    }
 };
 
 // Регистрация бомжа
@@ -122,7 +128,10 @@ function renderUpgrades() {
 
                 Цена: ${item.cost} монет
 
-                <button onclick="buyUpgrade('${item.id}')">Купить</button>
+                <button onclick="buyUpgrade('${item.id}')">Купить</button
+
+
+>
             </div>
         `;
     });
@@ -131,10 +140,7 @@ function renderUpgrades() {
 // --- КАЗИНО (СЛОТЫ) ---
 function spinSlots() {
     const betInput = document.getElementById('slotBet');
-    const bet = betInput ? parseInt(betInput.value) ||
-
-
-10 : 10;
+    const bet = betInput ? parseInt(betInput.value) || 10 : 10;
     
     if (player.деньги < bet) {
         alert("Недостаточно денег для ставки!");
@@ -247,7 +253,10 @@ function setStyleWidth(id, val) {
 }
 
 // --- СОХРАНЕНИЕ И ЗАГРУЗКА ---
-function saveGame() {
+func
+
+
+tion saveGame() {
     player.lastSaveTime = Date.now();
     localStorage.setItem('homeless_game_save', JSON.stringify(player));
 }
