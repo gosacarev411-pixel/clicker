@@ -253,10 +253,7 @@ function setStyleWidth(id, val) {
 }
 
 // --- СОХРАНЕНИЕ И ЗАГРУЗКА ---
-func
-
-
-tion saveGame() {
+function saveGame() {
     player.lastSaveTime = Date.now();
     localStorage.setItem('homeless_game_save', JSON.stringify(player));
 }
