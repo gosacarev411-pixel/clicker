@@ -45,7 +45,6 @@ window.onload = () => {
         initGame();
     }
 
-    // Автоматически привязываем кнопку регистрации, чтобы она точно работала
     const regBtn = document.getElementById('registerBtn');
     if (regBtn) {
         regBtn.onclick = registerPlayer;
@@ -128,17 +127,17 @@ function renderUpgrades() {
 
                 Цена: ${item.cost} монет
 
-                <button onclick="buyUpgrade('${item.id}')">Купить</button
-
-
->
+                <button onclick="buyUpgrade('${item.id}')">Купить</button>
             </div>
         `;
     });
 }
 
 // --- КАЗИНО (СЛОТЫ) ---
-function spinSlots() {
+function
+
+
+spinSlots() {
     const betInput = document.getElementById('slotBet');
     const bet = betInput ? parseInt(betInput.value) || 10 : 10;
     
