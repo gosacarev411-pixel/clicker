@@ -257,9 +257,6 @@ function loadGame() {
     }
 }
 
-window.addEventListen
-
-
-er('beforeunload', () => {
+window.addEventListener('beforeunload', () => {
     saveGame();
 });
