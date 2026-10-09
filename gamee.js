@@ -1,4 +1,4 @@
-// --- УРОВНИ ИГРЫ (баланс на 1 год активной игры) ---
+// --- УРОВНИ ИГРЫ ---
 const LEVELS = [
     { имя: "Бомж", цена: 0 },
     { имя: "Попрошайка", цена: 100000 },
@@ -38,8 +38,9 @@ const upgradesList = [
 // --- ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ---
 window.onload = () => {
     loadGame();
+    const regModal = document.getElementById('registerModal');
     if (!player.имя || player.имя.trim() === "") {
-        document.getElementById('registerModal').classList.remove('hidden');
+        if (regModal) regModal.classList.remove('hidden');
     } else {
         initGame();
     }
@@ -47,10 +48,11 @@ window.onload = () => {
 
 // Регистрация бомжа
 function registerPlayer() {
-    const inputName = document.getElementById('registerNameInput').value.trim();
-    if (inputName) {
-        player.имя = inputName;
-        document.getElementById('registerModal').classList.add('hidden');
+    const input = document.getElementById('registerNameInput');
+    if (input && input.value.trim() !== "") {
+        player.имя = input.value.trim();
+        const regModal = document.getElementById('registerModal');
+        if (regModal) regModal.classList.add('hidden');
         saveGame();
         initGame();
     } else {
@@ -64,21 +66,24 @@ function initGame() {
 }
 
 // --- КЛИК ПО МОНЕТЕ ---
-document.getElementById('clickerBtn').onclick = () => {
-    if (player.энергия <= 0) {
-        alert("Энергия закончилась! Отдохните.");
-        return;
-    }
-    player.деньги += player.tapPower * player.tapMultiplier;
-    player.энергия = Math.max(0, player.энергия - 1);
-    checkLevelUp();
-    updateUI();
-};
+const clickerBtn = document.getElementById('clickerBtn');
+if (clickerBtn) {
+    clickerBtn.onclick = () => {
+        if (player.энергия <= 0) {
+            alert("Энергия закончилась! Отдохните.");
+            return;
+        }
+        player.деньги += player.tapPower * player.tapMultiplier;
+        player.энергия = Math.max(0, player.энергия - 1);
+        checkLevelUp();
+        updateUI();
+    };
+}
 
 // --- ПРОВЕРКА ПОВЫШЕНИ УРОВНЯ ---
 function checkLevelUp() {
     if (player.levelIndex < LEVELS.length - 1) {
-        if (player.деньги >= LEVELS[player.levelIndex + 1]. цена) {
+        if (player.деньги >= LEVELS[player.levelIndex + 1].цена) {
             player.levelIndex++;
             alert(`Поздравляем! Вы повысили уровень до: ${LEVELS[player.levelIndex].имя}`);
         }
@@ -97,7 +102,7 @@ function buyUpgrade(id) {
         } else if (item.type === 'mine') {
             player.mineSpeed += item.value;
         }
-        item.cost = Math.floor(item.cost * 1.5); // Удорожание
+        item.cost = Math.floor(item.cost * 1.5);
         updateUI();
         renderUpgrades();
         saveGame();
@@ -125,7 +130,12 @@ function renderUpgrades() {
 
 // --- КАЗИНО (СЛОТЫ) ---
 function spinSlots() {
-    const bet = parseInt(document.getElementById('slotBet').value) || 10;
+    const betInput = document.getElementById('slotBet');
+    const bet = betInput ? parseInt(betInput.value) ||
+
+
+10 : 10;
+    
     if (player.деньги < bet) {
         alert("Недостаточно денег для ставки!");
         return;
@@ -133,14 +143,12 @@ function spinSlots() {
     player.деньги -= bet;
 
     const symbols = ['🍒', '🍋', '🔔', '💎'];
-    const r1 = sy
-
-
-mbols[Math.floor(Math.random() * symbols.length)];
+    const r1 = symbols[Math.floor(Math.random() * symbols.length)];
     const r2 = symbols[Math.floor(Math.random() * symbols.length)];
     const r3 = symbols[Math.floor(Math.random() * symbols.length)];
 
-    document.getElementById('slotResult').innerText = `${r1} | ${r2} | ${r3}`;
+    const resElem = document.getElementById('slotResult');
+    if (resElem) resElem.innerText = `${r1} | ${r2} | ${r3}`;
 
     if (r1 === r2 && r2 === r3) {
         const win = bet * 10;
@@ -178,7 +186,7 @@ function openCase() {
         player.inventory.push(wonSkin);
         alert(`Поздравляем! Вам выпал новый скин: ${wonSkin}`);
     } else {
-        player.деньги += 200; // Компенсация за повтор
+        player.деньги += 200;
         alert(`Выпал уже имеющийся скин (${wonSkin}). Возвращено 200 монет!`);
     }
     updateUI();
@@ -194,10 +202,10 @@ function closeAllSubScreens() {
     });
 }
 
-function openUpgrades() { closeAllSubScreens(); document.getElementById('upgradesModal').classList.remove('hidden'); }
-function openSlots() { closeAllSubScreens(); document.getElementById('slotsModal').classList.remove('hidden'); }
-function openCases() { closeAllSubScreens(); document.getElementById('casesModal').classList.remove('hidden'); }
-function openWheel() { closeAllSubScreens(); document.getElementById('wheelModal').classList.remove('hidden'); }
+function openUpgrades() { closeAllSubScreens(); const m = document.getElementById('upgradesModal'); if (m) m.classList.remove('hidden'); }
+function openSlots() { closeAllSubScreens(); const m = document.getElementById('slotsModal'); if (m) m.classList.remove('hidden'); }
+function openCases() { closeAllSubScreens(); const m = document.getElementById('casesModal'); if (m) m.classList.remove('hidden'); }
+function openWheel() { closeAllSubScreens(); const m = document.getElementById('wheelModal'); if (m) m.classList.remove('hidden'); }
 
 // --- ПАССИВНЫЙ ДОХОД И ТАЙМЕРЫ ---
 setInterval(() => {
@@ -206,7 +214,6 @@ setInterval(() => {
         checkLevelUp();
         updateUI();
     }
-    // Восстановление энергии со временем
     if (player.энергия < player.максЭнергия) {
         player.энергия = Math.min(player.максЭнергия, player.энергия + 2);
         updateUI();
@@ -246,7 +253,10 @@ function saveGame() {
 }
 
 function loadGame() {
-    const saved = localStorage.getItem('homeless_game_save');
+    const saved = localStorage.getItem('homeless_g
+
+
+ame_save');
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
