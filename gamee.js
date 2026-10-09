@@ -253,10 +253,7 @@ function saveGame() {
 }
 
 function loadGame() {
-    const saved = localStorage.getItem('homeless_g
-
-
-ame_save');
+    const saved = localStorage.getItem('homeless_game_save');
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
